@@ -1,6 +1,6 @@
 {
   "name": "@sensinum/strapi-plugin-open-mercato",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Strapi Open Mercato Plugin",
   "keywords": [
     "strapi",
@@ -24,14 +24,13 @@
       "url": "https://virtuslab.com"
     }
   ],
-  "homepage": "https://github.com/VirtusLab-Open-Source/strapi-plugin-open-mercato/tree/main/packages/strapi-plugin-open-mercato#readme",
+  "homepage": "https://github.com/VirtusLab-Open-Source/strapi-plugin-open-mercato/tree/main#readme",
   "bugs": {
     "url": "https://github.com/VirtusLab-Open-Source/strapi-plugin-open-mercato/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/VirtusLab-Open-Source/strapi-plugin-open-mercato.git",
-    "directory": "packages/strapi-plugin-open-mercato"
+    "url": "git+https://github.com/VirtusLab-Open-Source/strapi-plugin-open-mercato.git"
   },
   "type": "commonjs",
   "exports": {
