@@ -1,6 +1,6 @@
 {
   "name": "@sensinum/strapi-plugin-open-mercato",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "description": "Strapi Open Mercato Plugin",
   "keywords": [
     "strapi",

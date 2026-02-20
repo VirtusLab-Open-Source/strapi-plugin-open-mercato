@@ -62,10 +62,10 @@ yarn build
 
 Configure the plugin in your Strapi project's `./config/plugins.js` (or `.ts`):
 
-- `apiUrl` (string): Your Open Mercato instance URL (e.g. `https://my-instance.openmercato.com`)
-- `accessToken` (string): Your Open Mercato API access token
-- `encryptionKey` (string): A 32-character string used for encrypting sensitive data stored in Strapi
-- `engine` (string): Cache engine — `'memory'` or `'redis'`
+- `encryptionKey` (string, **required**): A 32-character string used for encrypting sensitive data stored in Strapi
+- `apiUrl` (string, **optional**): Your Open Mercato instance URL (e.g. `https://my-instance.openmercato.com`)
+- `accessToken` (string, **optional**): Your Open Mercato API access token
+- `engine` (string, **optional**, default not set): Cache engine — `'memory'` or `'redis'`
 - `connection` (object, **required if `engine` is `'redis'`**): Redis connection details:
   - `host` (string)
   - `port` (number)
@@ -83,9 +83,9 @@ module.exports = ({ env }) => ({
   'open-mercato': {
     enabled: true,
     config: {
+      encryptionKey: env('OPEN_MERCATO_ENCRYPTION_KEY'),
       apiUrl: env('OPEN_MERCATO_API_URL'),
       accessToken: env('OPEN_MERCATO_ACCESS_TOKEN'),
-      encryptionKey: env('OPEN_MERCATO_ENCRYPTION_KEY'),
       engine: 'memory',
     },
   },
@@ -100,9 +100,9 @@ module.exports = ({ env }) => ({
   'open-mercato': {
     enabled: true,
     config: {
+      encryptionKey: env('OPEN_MERCATO_ENCRYPTION_KEY'),
       apiUrl: env('OPEN_MERCATO_API_URL'),
       accessToken: env('OPEN_MERCATO_ACCESS_TOKEN'),
-      encryptionKey: env('OPEN_MERCATO_ENCRYPTION_KEY'),
       engine: 'redis',
       connection: {
         host: env('REDIS_HOST', '127.0.0.1'),

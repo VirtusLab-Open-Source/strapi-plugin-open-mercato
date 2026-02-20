@@ -3,8 +3,6 @@ orbs:
   codecov: codecov/codecov@5
 jobs:
   test:
-    environment:
-      CODECOV_TOKEN: $CODECOV_TOKEN
     docker:
       - image: cimg/node:22.19.0
     working_directory: ~/repo
