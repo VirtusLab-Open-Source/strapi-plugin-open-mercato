@@ -40,6 +40,7 @@ jobs:
             yarn test:server:ci
       - codecov/upload:
           flags: unittest
+          directory: ./server/coverage
       - save_cache:
           paths:
             - ./node_modules
