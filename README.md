@@ -10,6 +10,12 @@
   <a href="https://www.npmjs.org/package/@sensinum/strapi-plugin-open-mercato">
     <img src="https://img.shields.io/npm/dm/@sensinum/strapi-plugin-open-mercato.svg" alt="Monthly download on NPM" />
   </a>
+  <a href="https://circleci.com/gh/VirtusLab-Open-Source/strapi-plugin-open-mercato">
+    <img alt="CircleCI Build Status" src="https://img.shields.io/circleci/build/gh/VirtusLab-Open-Source/strapi-plugin-open-mercato/main?logo=circleci">
+  </a>
+  <a href="https://codecov.io/gh/VirtusLab-Open-Source/strapi-plugin-open-mercato">
+    <img alt="codecov" src="https://img.shields.io/codecov/c/github/VirtusLab-Open-Source/strapi-plugin-open-mercato/main?logo=codecov">
+  </a>
 </div>
 
 ---
