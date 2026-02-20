@@ -10,10 +10,12 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   collectCoverageFrom: [
-    'server/src/**/*.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/*.{js,jsx,ts,tsx}',
     '!**/node_modules/**',
     '!**/dist/**',
+    '!**/__tests__/**',
   ],
   collectCoverage: true,
+  coverageDirectory: '../coverage',
   reporters: ['default', 'jest-junit'],
 }; 
