@@ -4,7 +4,7 @@ orbs:
 jobs:
   test:
     environment:
-      CODECOV_TOKEN: e5ab13f5-15ff-4c65-9c0d-7e3722203d7c
+      CODECOV_TOKEN: $CODECOV_TOKEN
     docker:
       - image: cimg/node:22.19.0
     working_directory: ~/repo
@@ -31,7 +31,7 @@ jobs:
       - run:
           name: Configure NPM
           command: |
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN_SENSINUM" > ~/.npmrc
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
       - run:
           name: Install
           command: |
@@ -39,7 +39,7 @@ jobs:
       - run:
           name: Test
           command: |
-            yarn test:run
+            yarn test:server:ci
       - codecov/upload:
           flags: unittest
       - save_cache:
@@ -60,7 +60,7 @@ jobs:
       - run:
           name: Configure NPM
           command: |
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN_SENSINUM" > ~/.npmrc
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
       - run:
           name: Build
           command: |
@@ -79,7 +79,7 @@ jobs:
       - run:
           name: Configure NPM
           command: |
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN_SENSINUM" > ~/.npmrc
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
       - run:
           name: Build
           command: |
