@@ -1,17 +1,13 @@
 import { Core } from '@strapi/strapi';
 import Redis from 'ioredis';
-import { LRUCache } from 'lru-cache';
 import cacheService from '../cache.service';
 import { getENVConfig, isMemoryEngine, isRedisEngine } from '../../utils';
 
 jest.mock('ioredis');
-jest.mock('lru-cache');
 jest.mock('../../utils', () => ({
   ...jest.requireActual('../../utils'),
-  getENVConfig: jest.fn().mockReturnValue({
-    engine: 'memory',
-  }),
-  isMemoryEngine: jest.fn().mockReturnValue(true),
+  getENVConfig: jest.fn().mockReturnValue({}),
+  isMemoryEngine: jest.fn().mockReturnValue(false),
   isRedisEngine: jest.fn().mockReturnValue(false),
 }));
 
@@ -27,99 +23,89 @@ describe('cache.service', () => {
     jest.clearAllMocks();
   });
 
-  describe('Memory Cache Engine', () => {
-    const mockConfig = {
-      engine: 'memory',
-    };
-
-    it('should initialize memory cache engine', () => {
+  describe('No cache (default)', () => {
+    it('should return a no-op cache when no engine is configured', () => {
       // Arrange
-      const mockStrapi = getMockStrapi(mockConfig);
-      const mockLruCache = {
-        set: jest.fn(),
-        get: jest.fn(),
-        has: jest.fn(),
-      };
-      (LRUCache as unknown as jest.Mock).mockImplementation(() => mockLruCache);
+      (getENVConfig as jest.Mock).mockReturnValue({});
+      const mockStrapi = getMockStrapi({});
 
       // Act
       const service = cacheService({ strapi: mockStrapi });
 
       // Assert
-      expect(LRUCache).toHaveBeenCalledWith({ max: 500 });
+      expect(service).toBeDefined();
+      expect(typeof service.get).toBe('function');
+      expect(typeof service.set).toBe('function');
+      expect(typeof service.has).toBe('function');
+    });
+
+    it('no-op get always returns undefined', async () => {
+      (getENVConfig as jest.Mock).mockReturnValue({});
+      const service = cacheService({ strapi: getMockStrapi({}) });
+
+      expect(await service.get('any-key')).toBeUndefined();
+    });
+
+    it('no-op has always returns false', async () => {
+      (getENVConfig as jest.Mock).mockReturnValue({});
+      const service = cacheService({ strapi: getMockStrapi({}) });
+
+      expect(await service.has('any-key')).toBe(false);
+    });
+
+    it('no-op set does not throw', async () => {
+      (getENVConfig as jest.Mock).mockReturnValue({});
+      const service = cacheService({ strapi: getMockStrapi({}) });
+
+      await expect(service.set('key', 'value')).resolves.toBeUndefined();
+    });
+  });
+
+  describe('Memory Cache Engine', () => {
+    const mockConfig = { engine: 'memory' };
+
+    beforeEach(() => {
+      (getENVConfig as jest.Mock).mockReturnValue(mockConfig);
+      (isMemoryEngine as unknown as jest.Mock).mockReturnValue(true);
+      (isRedisEngine as unknown as jest.Mock).mockReturnValue(false);
+    });
+
+    it('should initialize memory cache engine', () => {
+      const service = cacheService({ strapi: getMockStrapi(mockConfig) });
       expect(service).toBeDefined();
     });
 
-    it('should set value in memory cache', async () => {
-      // Arrange
-      const mockStrapi = getMockStrapi(mockConfig);
-      const mockLruCache = {
-        set: jest.fn(),
-        get: jest.fn(),
-        has: jest.fn(),
-      };
-      (LRUCache as unknown as jest.Mock).mockImplementation(() => mockLruCache);
-      const service = cacheService({ strapi: mockStrapi });
+    it('should set and get value in memory cache', async () => {
+      const service = cacheService({ strapi: getMockStrapi(mockConfig) });
       const key = 'test-key';
       const value = { test: 'value' };
 
-      // Act
       await service.set(key, value);
-
-      // Assert
-      expect(mockLruCache.set).toHaveBeenCalledWith(key, value);
-    });
-
-    it('should get value from memory cache', async () => {
-      // Arrange
-      const mockStrapi = getMockStrapi(mockConfig);
-      const expectedValue = { test: 'value' };
-      const mockLruCache = {
-        set: jest.fn(),
-        get: jest.fn().mockReturnValue(expectedValue),
-        has: jest.fn(),
-      };
-      (LRUCache as unknown as jest.Mock).mockImplementation(() => mockLruCache);
-      const service = cacheService({ strapi: mockStrapi });
-      const key = 'test-key';
-
-      // Act
       const result = await service.get(key);
 
-      // Assert
-      expect(mockLruCache.get).toHaveBeenCalledWith(key);
-      expect(result).toEqual(expectedValue);
+      expect(result).toEqual(value);
+    });
+
+    it('should return undefined for missing key', async () => {
+      const service = cacheService({ strapi: getMockStrapi(mockConfig) });
+
+      expect(await service.get('nonexistent')).toBeUndefined();
     });
 
     it('should check if key exists in memory cache', async () => {
-      // Arrange
-      const mockStrapi = getMockStrapi(mockConfig);
-      const mockLruCache = {
-        set: jest.fn(),
-        get: jest.fn(),
-        has: jest.fn().mockReturnValue(true),
-      };
-      (LRUCache as unknown as jest.Mock).mockImplementation(() => mockLruCache);
-      const service = cacheService({ strapi: mockStrapi });
+      const service = cacheService({ strapi: getMockStrapi(mockConfig) });
       const key = 'test-key';
 
-      // Act
-      const result = await service.has(key);
-
-      // Assert
-      expect(mockLruCache.has).toHaveBeenCalledWith(key);
-      expect(result).toBe(true);
+      expect(await service.has(key)).toBe(false);
+      await service.set(key, 'value');
+      expect(await service.has(key)).toBe(true);
     });
   });
 
   describe('Redis Cache Engine', () => {
     const mockConfig = {
       engine: 'redis',
-      connection: {
-        host: 'localhost',
-        port: 6379,
-        db: 0,
-      },
+      connection: { host: 'localhost', port: 6379, db: 0 },
     };
 
     beforeEach(() => {
@@ -129,46 +115,26 @@ describe('cache.service', () => {
     });
 
     it('should initialize Redis cache engine', () => {
-      // Arrange
-      const mockStrapi = getMockStrapi(mockConfig);
-      const mockRedis = {
-        set: jest.fn(),
-        get: jest.fn(),
-        exists: jest.fn(),
-      };
+      const mockRedis = { set: jest.fn(), get: jest.fn(), exists: jest.fn() };
       (Redis as unknown as jest.Mock).mockImplementation(() => mockRedis);
 
-      // Act
-      const service = cacheService({ strapi: mockStrapi });
+      const service = cacheService({ strapi: getMockStrapi(mockConfig) });
 
-      // Assert
       expect(Redis).toHaveBeenCalledWith(mockConfig.connection);
       expect(service).toBeDefined();
     });
 
     it('should set value in Redis cache', async () => {
-      // Arrange
-      const mockStrapi = getMockStrapi(mockConfig);
-      const mockRedis = {
-        set: jest.fn(),
-        get: jest.fn(),
-        exists: jest.fn(),
-      };
+      const mockRedis = { set: jest.fn(), get: jest.fn(), exists: jest.fn() };
       (Redis as unknown as jest.Mock).mockImplementation(() => mockRedis);
-      const service = cacheService({ strapi: mockStrapi });
-      const key = 'test-key';
-      const value = { test: 'value' };
+      const service = cacheService({ strapi: getMockStrapi(mockConfig) });
 
-      // Act
-      await service.set(key, value);
+      await service.set('key', { test: 'value' });
 
-      // Assert
-      expect(mockRedis.set).toHaveBeenCalledWith(key, JSON.stringify(value));
+      expect(mockRedis.set).toHaveBeenCalledWith('key', JSON.stringify({ test: 'value' }));
     });
 
     it('should get value from Redis cache', async () => {
-      // Arrange
-      const mockStrapi = getMockStrapi(mockConfig);
       const expectedValue = { test: 'value' };
       const mockRedis = {
         set: jest.fn(),
@@ -176,61 +142,38 @@ describe('cache.service', () => {
         exists: jest.fn(),
       };
       (Redis as unknown as jest.Mock).mockImplementation(() => mockRedis);
-      const service = cacheService({ strapi: mockStrapi });
-      const key = 'test-key';
+      const service = cacheService({ strapi: getMockStrapi(mockConfig) });
 
-      // Act
-      const result = await service.get(key);
+      const result = await service.get('key');
 
-      // Assert
-      expect(mockRedis.get).toHaveBeenCalledWith(key);
+      expect(mockRedis.get).toHaveBeenCalledWith('key');
       expect(result).toEqual(expectedValue);
     });
 
     it('should check if key exists in Redis cache', async () => {
-      // Arrange
-      const mockStrapi = getMockStrapi(mockConfig);
       const mockRedis = {
         set: jest.fn(),
         get: jest.fn(),
         exists: jest.fn().mockResolvedValue(1),
       };
       (Redis as unknown as jest.Mock).mockImplementation(() => mockRedis);
-      const service = cacheService({ strapi: mockStrapi });
-      const key = 'test-key';
+      const service = cacheService({ strapi: getMockStrapi(mockConfig) });
 
-      // Act
-      const result = await service.has(key);
-
-      // Assert
-      expect(mockRedis.exists).toHaveBeenCalledWith(key);
-      expect(result).toBe(true);
+      expect(await service.has('key')).toBe(true);
+      expect(mockRedis.exists).toHaveBeenCalledWith('key');
     });
   });
 
   describe('Error Cases', () => {
-    it('should throw error when cache engine is not defined', () => {
-      // Arrange
-      const mockConfig = {};
-      (getENVConfig as jest.Mock).mockReturnValue(mockConfig);
-      const mockStrapi = getMockStrapi(mockConfig);
-
-      // Act & Assert
-      expect(() => cacheService({ strapi: mockStrapi })).toThrow('Cache engine is not defined');
-    });
-
     it('should throw error when cache engine is not supported', () => {
-      // Arrange
-      const mockConfig = {
-        engine: 'unsupported',
-      };
+      const mockConfig = { engine: 'unsupported' };
       (getENVConfig as jest.Mock).mockReturnValue(mockConfig);
-      (require('../../utils').isMemoryEngine as jest.Mock).mockReturnValue(false);
-      (require('../../utils').isRedisEngine as jest.Mock).mockReturnValue(false);
-      const mockStrapi = getMockStrapi(mockConfig);
+      (isMemoryEngine as unknown as jest.Mock).mockReturnValue(false);
+      (isRedisEngine as unknown as jest.Mock).mockReturnValue(false);
 
-      // Act & Assert
-      expect(() => cacheService({ strapi: mockStrapi })).toThrow('Unsupported cache engine');
+      expect(() => cacheService({ strapi: getMockStrapi(mockConfig) })).toThrow(
+        'Unsupported cache engine: unsupported'
+      );
     });
   });
 });

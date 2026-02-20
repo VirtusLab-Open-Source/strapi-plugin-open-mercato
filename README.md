@@ -1,3 +1,6 @@
+<div align="center" width="150px">
+  <img style="width: 150px; height: auto;" src="https://www.sensinum.com/img/open-source/strapi-plugin-open-mercato/logo.png" alt="Logo - Strapi Plugin Open Mercato" />
+</div>
 <div align="center">
   <h1>Strapi Open Mercato Plugin</h1>
   <p>Seamless Open Mercato integration for your Strapi instance</p>
@@ -11,7 +14,7 @@
 
 ---
 
-A Strapi plugin that connects your Strapi application with [Open Mercato](https://docs.openmercato.com) through a user-friendly interface. It features a custom product field and efficient product synchronization via the Open Mercato REST API (`/entities/products`). The plugin comes with configurable caching mechanisms to optimize performance.
+A Strapi plugin that connects your Strapi application with [Open Mercato](https://docs.openmercato.com) through a user-friendly interface. It features a custom product field and efficient product synchronization via the Open Mercato REST API (`/catalog/products`). The plugin comes with configurable caching mechanisms to optimize performance.
 
 ## 📋 Table of Contents
 

@@ -6,9 +6,9 @@ import { COMPONENT_FIELDS } from '../../const';
 const getCustomField = (
   result: ProductFieldsResult,
   fieldPath: string,
-  product: number
+  product: string | number
 ): void => {
-  result.set(fieldPath, product);
+  result.set(fieldPath, String(product));
 };
 /**
  * Process a raw field containing product data
@@ -152,7 +152,7 @@ const processArrayResults = (
   contentTypes: Map<UID.ContentType, Array<FieldType>>,
   components: Map<UID.ContentType, Array<FieldType>>
 ): ProductFieldsResult => {
-  const result = new Map<string, number>();
+  const result = new Map<string, string>();
   fetchedResult.forEach((element, index) => {
     contentType.forEach((field) => {
       const fieldData = element[field.field];
@@ -189,7 +189,7 @@ const processSingleResult = (
   contentTypes: Map<UID.ContentType, Array<FieldType>>,
   components: Map<UID.ContentType, Array<FieldType>>
 ): ProductFieldsResult => {
-  const result = new Map<string, number>();
+  const result = new Map<string, string>();
   contentType.forEach((field) => {
     const fieldData = nextResult[field.field];
     if (!fieldData) return;
@@ -230,7 +230,7 @@ export const getProductFields = ({
   components,
 }: ProductFieldsParams): ProductFieldsResult => {
   if (!fetchedData || typeof fetchedData !== 'object') {
-    return new Map<string, number>();
+    return new Map<string, string>();
   }
   if (Array.isArray(fetchedData)) {
     return processArrayResults(contentType, fetchedData, contentTypes, components);

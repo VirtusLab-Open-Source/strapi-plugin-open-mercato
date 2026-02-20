@@ -1,8 +1,12 @@
 import { getENVConfig } from '../getENVConfig';
 import { Core } from '@strapi/strapi';
-import { FullPluginConfig, RedisEngine } from '../../config/schema';
+import { FullPluginConfig } from '../../config/schema';
 
 const getMockConfig = (): FullPluginConfig => ({
+  encryptionKey: '01234567890123456789012345678901',
+});
+
+const getMockConfigWithCache = (): FullPluginConfig => ({
   engine: 'memory',
   apiUrl: 'https://my-instance.openmercato.com',
   accessToken: 'test-access-token',
@@ -17,45 +21,43 @@ const getStrapiMock = (mockConfig: FullPluginConfig = getMockConfig()) => {
   } as unknown as Core.Strapi;
 };
 
-const isRedisEngine = (config: FullPluginConfig): config is RedisEngine & { host: string } => {
-  return config.engine === 'redis';
-};
-
 describe('getENVConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('should return the plugin configuration', () => {
-    // Arrange
     const mockConfig = getMockConfig();
     const mockStrapi = getStrapiMock(mockConfig);
 
-    // Act
     const result = getENVConfig(mockStrapi);
 
-    // Assert
     expect(mockStrapi.config.get).toHaveBeenCalledWith('plugin::open-mercato');
     expect(result).toBe(mockConfig);
   });
 
-  it('should return the correct configuration structure', () => {
-    // Arrange
+  it('should work with minimal config (no cache engine)', () => {
     const mockConfig = getMockConfig();
     const mockStrapi = getStrapiMock(mockConfig);
 
-    // Act
     const result = getENVConfig(mockStrapi);
 
-    // Assert
+    expect(result).toHaveProperty('encryptionKey');
+    expect(result.engine).toBeUndefined();
+  });
+
+  it('should return the correct configuration with memory engine', () => {
+    const mockConfig = getMockConfigWithCache();
+    const mockStrapi = getStrapiMock(mockConfig);
+
+    const result = getENVConfig(mockStrapi);
+
     expect(result).toHaveProperty('apiUrl');
     expect(result).toHaveProperty('accessToken');
-    expect(result).toHaveProperty('engine');
     expect(result.engine).toBe('memory');
   });
 
   it('should work with redis engine configuration', () => {
-    // Arrange
     const redisConfig: FullPluginConfig = {
       engine: 'redis',
       apiUrl: 'https://my-instance.openmercato.com',
@@ -71,20 +73,13 @@ describe('getENVConfig', () => {
     } as FullPluginConfig;
     const mockStrapi = getStrapiMock(redisConfig);
 
-    // Act
     const result = getENVConfig(mockStrapi);
 
-    // Assert
-    expect(result).toHaveProperty('apiUrl');
-    expect(result).toHaveProperty('engine');
     expect(result.engine).toBe('redis');
-
-    if (isRedisEngine(result)) {
+    if (result.engine === 'redis') {
       expect(result.connection).toHaveProperty('host');
       expect(result.connection).toHaveProperty('port');
       expect(result.connection).toHaveProperty('db');
-      expect(result.connection).toHaveProperty('password');
-      expect(result.connection).toHaveProperty('username');
     }
   });
 });

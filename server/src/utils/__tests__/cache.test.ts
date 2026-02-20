@@ -1,68 +1,66 @@
-import { isRedisEngine, isMemoryEngine } from '../cache';
-import { MemoryEngine, RedisEngine } from '../../config/schema';
+import { isRedisEngine, isMemoryEngine, isCacheEnabled } from '../cache';
+import { FullPluginConfig } from '../../config/schema';
+
+const baseConfig = { encryptionKey: '01234567890123456789012345678901' };
 
 describe('cacheDetection', () => {
   describe('isRedisEngine', () => {
     it('should return true for Redis engine config', () => {
-      // Arrange
-      const redisConfig: RedisEngine = {
-        engine: 'redis',
-        connection: {
-          host: 'localhost',
-          port: 6379,
-          db: 0,
-        },
+      const config = {
+        ...baseConfig,
+        engine: 'redis' as const,
+        connection: { host: 'localhost', port: 6379, db: 0 },
       };
-
-      // Act
-      const result = isRedisEngine(redisConfig);
-
-      // Assert
-      expect(result).toBe(true);
+      expect(isRedisEngine(config)).toBe(true);
     });
 
     it('should return false for Memory engine config', () => {
-      // Arrange
-      const memoryConfig: MemoryEngine = {
-        engine: 'memory',
-      };
+      const config = { ...baseConfig, engine: 'memory' as const };
+      expect(isRedisEngine(config)).toBe(false);
+    });
 
-      // Act
-      const result = isRedisEngine(memoryConfig);
-
-      // Assert
-      expect(result).toBe(false);
+    it('should return false when no engine configured', () => {
+      expect(isRedisEngine(baseConfig as FullPluginConfig)).toBe(false);
     });
   });
 
   describe('isMemoryEngine', () => {
     it('should return true for Memory engine config', () => {
-      const memoryConfig: MemoryEngine = {
-        engine: 'memory',
-      };
-
-      // Act
-      const result = isMemoryEngine(memoryConfig);
-
-      // Assert
-      expect(result).toBe(true);
+      const config = { ...baseConfig, engine: 'memory' as const };
+      expect(isMemoryEngine(config)).toBe(true);
     });
 
     it('should return false for Redis engine config', () => {
-      const redisConfig: RedisEngine = {
-        engine: 'redis',
-        connection: {
-          host: 'localhost',
-          port: 6379,
-          db: 0,
-        },
+      const config = {
+        ...baseConfig,
+        engine: 'redis' as const,
+        connection: { host: 'localhost', port: 6379, db: 0 },
       };
+      expect(isMemoryEngine(config)).toBe(false);
+    });
 
-      // Act
-      const result = isMemoryEngine(redisConfig);
+    it('should return false when no engine configured', () => {
+      expect(isMemoryEngine(baseConfig as FullPluginConfig)).toBe(false);
+    });
+  });
 
-      // Assert
-      expect(result).toBe(false);
+  describe('isCacheEnabled', () => {
+    it('should return true for memory engine', () => {
+      const config = { ...baseConfig, engine: 'memory' as const };
+      expect(isCacheEnabled(config)).toBe(true);
+    });
+
+    it('should return true for redis engine', () => {
+      const config = {
+        ...baseConfig,
+        engine: 'redis' as const,
+        connection: { host: 'localhost', port: 6379, db: 0 },
+      };
+      expect(isCacheEnabled(config)).toBe(true);
+    });
+
+    it('should return false when no engine configured', () => {
+      expect(isCacheEnabled(baseConfig as FullPluginConfig)).toBe(false);
     });
   });
 });

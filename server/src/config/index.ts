@@ -1,9 +1,7 @@
 import { schemaConfig } from './schema';
 
 export default {
-  default: {
-    engine: 'memory',
-  },
+  default: {},
   validator(config: unknown) {
     const result = schemaConfig.safeParse(config);
     if (result.error && result.error.issues.length > 0) {

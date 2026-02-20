@@ -24,4 +24,4 @@ export type DynamicZoneField = {
   components: Array<UID.Component>;
 };
 export type FieldType = RawField | ComponentField | RelationField | DynamicZoneField;
-export type ProductFieldsResult = Map<string, number>;
+export type ProductFieldsResult = Map<string, string>;

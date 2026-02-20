@@ -50,7 +50,7 @@ describe('rest.client', () => {
     const client = getRestClient({ strapi });
 
     // Act & Assert
-    await expect(client.fetchProductsByIds([1])).rejects.toThrow(
+    await expect(client.fetchProductsByIds(['1'])).rejects.toThrow(
       'Open Mercato plugin is not configured'
     );
     await expect(client.searchProductsByName('test')).rejects.toThrow(
@@ -77,7 +77,7 @@ describe('rest.client', () => {
     const client = getRestClient({ strapi });
 
     // Act & Assert
-    await expect(client.fetchProductsByIds([1])).rejects.toThrow(
+    await expect(client.fetchProductsByIds(['1'])).rejects.toThrow(
       'Open Mercato plugin is not configured'
     );
   });
@@ -99,8 +99,8 @@ describe('rest.client', () => {
   it('returns cached products if all are cached', async () => {
     // Arrange
     const cachedProducts = [
-      { id: 1, name: 'A', sku: 'a' },
-      { id: 2, name: 'B', sku: 'b' },
+      { id: '1', name: 'A', sku: 'a' },
+      { id: '2', name: 'B', sku: 'b' },
     ];
     const cacheService = {
       get: jest
@@ -114,7 +114,7 @@ describe('rest.client', () => {
     const client = getRestClient({ strapi });
 
     // Act
-    const result = await client.fetchProductsByIds([1, 2]);
+    const result = await client.fetchProductsByIds(['1', '2']);
 
     // Assert
     expect(cacheService.get).toHaveBeenCalledTimes(2);
@@ -128,34 +128,34 @@ describe('rest.client', () => {
     const cacheService = {
       get: jest
         .fn()
-        .mockResolvedValueOnce({ id: 1, name: 'A', sku: 'a' })
+        .mockResolvedValueOnce({ id: '1', name: 'A', sku: 'a' })
         .mockResolvedValueOnce(undefined)
         .mockResolvedValueOnce(undefined),
       set: jest.fn(),
     };
-    const apiProducts: OpenMercatoRestProduct[] = [
-      { id: 2, name: 'B', sku: 'b' },
-      { id: 3, name: 'C', sku: 'c' },
-    ];
+    const apiProducts = [
+      { id: '2', name: 'B', sku: 'b' },
+      { id: '3', name: 'C', sku: 'c' },
+    ] as unknown as OpenMercatoRestProduct[];
     const fetchSpy = jest.spyOn(global, 'fetch' as any).mockResolvedValue({
       ok: true,
-      json: async () => ({ data: apiProducts }),
+      json: async () => ({ items: apiProducts }),
     } as any);
     const strapi = createStrapiMock({ cacheService });
     const client = getRestClient({ strapi });
 
     // Act
-    const result = await client.fetchProductsByIds([1, 2, 3]);
+    const result = await client.fetchProductsByIds(['1', '2', '3']);
 
     // Assert
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const calledUrl = fetchSpy.mock.calls[0][0] as string;
-    expect(calledUrl).toContain('/entities/products');
+    expect(calledUrl).toContain('/catalog/products');
     expect(cacheService.set).toHaveBeenCalledTimes(2);
     expect(result).toEqual([
-      { id: 1, name: 'A', sku: 'a' },
-      { id: 2, name: 'B', sku: 'b' },
-      { id: 3, name: 'C', sku: 'c' },
+      { id: '1', name: 'A', sku: 'a' },
+      { id: '2', name: 'B', sku: 'b' },
+      { id: '3', name: 'C', sku: 'c' },
     ]);
     fetchSpy.mockRestore();
   });
@@ -170,7 +170,7 @@ describe('rest.client', () => {
     const client = getRestClient({ strapi });
 
     // Act & Assert
-    await expect(client.fetchProductsByIds([1])).rejects.toThrow(
+    await expect(client.fetchProductsByIds(['1'])).rejects.toThrow(
       'Open Mercato REST API error: 500 Server Error'
     );
     fetchSpy.mockRestore();
@@ -179,41 +179,41 @@ describe('rest.client', () => {
   it('calls the correct API URL from config', async () => {
     // Arrange
     const cacheService = { get: jest.fn().mockResolvedValueOnce(undefined), set: jest.fn() };
-    const apiProducts: OpenMercatoRestProduct[] = [{ id: 1, name: 'A', sku: 'a' }];
+    const apiProducts = [{ id: '1', name: 'A', sku: 'a' }] as unknown as OpenMercatoRestProduct[];
     const fetchSpy = jest.spyOn(global, 'fetch' as any).mockResolvedValue({
       ok: true,
-      json: async () => ({ data: apiProducts }),
+      json: async () => ({ items: apiProducts }),
     } as any);
     const strapi = createStrapiMock({ cacheService });
     const client = getRestClient({ strapi });
 
     // Act
-    await client.fetchProductsByIds([1]);
+    await client.fetchProductsByIds(['1']);
 
     // Assert
     const calledUrl = fetchSpy.mock.calls[0][0] as string;
-    expect(calledUrl).toMatch(/^https:\/\/my-instance\.openmercato\.com\/entities\/products/);
+    expect(calledUrl).toMatch(/^https:\/\/my-instance\.openmercato\.com\/api\/catalog\/products/);
     fetchSpy.mockRestore();
   });
 
   it('sends Bearer token in Authorization header', async () => {
     // Arrange
     const cacheService = { get: jest.fn().mockResolvedValueOnce(undefined), set: jest.fn() };
-    const apiProducts: OpenMercatoRestProduct[] = [{ id: 1, name: 'A', sku: 'a' }];
+    const apiProducts = [{ id: '1', name: 'A', sku: 'a' }] as unknown as OpenMercatoRestProduct[];
     const fetchSpy = jest.spyOn(global, 'fetch' as any).mockResolvedValue({
       ok: true,
-      json: async () => ({ data: apiProducts }),
+      json: async () => ({ items: apiProducts }),
     } as any);
     const strapi = createStrapiMock({ cacheService });
     const client = getRestClient({ strapi });
 
     // Act
-    await client.fetchProductsByIds([1]);
+    await client.fetchProductsByIds(['1']);
 
     // Assert
     const calledOptions = fetchSpy.mock.calls[0][1] as RequestInit;
     expect(calledOptions.headers).toEqual(
-      expect.objectContaining({ Authorization: 'Bearer test-token' })
+      expect.objectContaining({ 'X-Api-Key': 'test-token' })
     );
     fetchSpy.mockRestore();
   });
@@ -224,22 +224,22 @@ describe('rest.client', () => {
       get: jest
         .fn()
         .mockResolvedValueOnce(undefined)
-        .mockResolvedValueOnce({ id: 1, name: 'A', sku: 'a' }),
+        .mockResolvedValueOnce({ id: '1', name: 'A', sku: 'a' }),
       set: jest.fn(),
     };
-    const apiProducts: OpenMercatoRestProduct[] = [{ id: 2, name: 'B', sku: 'b' }];
+    const apiProducts = [{ id: '2', name: 'B', sku: 'b' }] as unknown as OpenMercatoRestProduct[];
     const fetchSpy = jest.spyOn(global, 'fetch' as any).mockResolvedValue({
       ok: true,
-      json: async () => ({ data: apiProducts }),
+      json: async () => ({ items: apiProducts }),
     } as any);
     const strapi = createStrapiMock({ cacheService });
     const client = getRestClient({ strapi });
 
     // Act
-    const result = await client.fetchProductsByIds([2, 1]);
+    const result = await client.fetchProductsByIds(['2', '1']);
 
     // Assert
-    expect(result.map((p) => p.id)).toEqual([2, 1]);
+    expect(result.map((p) => p.id)).toEqual(['2', '1']);
     fetchSpy.mockRestore();
   });
 
@@ -249,26 +249,26 @@ describe('rest.client', () => {
       get: jest
         .fn()
         .mockResolvedValueOnce(undefined)
-        .mockResolvedValueOnce({ id: 2, name: 'B', sku: 'b' })
+        .mockResolvedValueOnce({ id: '2', name: 'B', sku: 'b' })
         .mockResolvedValueOnce(undefined),
       set: jest.fn(),
     };
-    const apiProducts: OpenMercatoRestProduct[] = [
-      { id: 1, name: 'A', sku: 'a' },
-      { id: 3, name: 'C', sku: 'c' },
-    ];
+    const apiProducts = [
+      { id: '1', name: 'A', sku: 'a' },
+      { id: '3', name: 'C', sku: 'c' },
+    ] as unknown as OpenMercatoRestProduct[];
     const fetchSpy = jest.spyOn(global, 'fetch' as any).mockResolvedValue({
       ok: true,
-      json: async () => ({ data: apiProducts }),
+      json: async () => ({ items: apiProducts }),
     } as any);
     const strapi = createStrapiMock({ cacheService });
     const client = getRestClient({ strapi });
 
     // Act
-    const result = await client.fetchProductsByIds([1, 2, 3]);
+    const result = await client.fetchProductsByIds(['1', '2', '3']);
 
     // Assert
-    expect(result.map((p) => p.id)).toEqual([1, 2, 3]);
+    expect(result.map((p) => p.id)).toEqual(['1', '2', '3']);
     expect(cacheService.set).toHaveBeenCalledTimes(2);
     fetchSpy.mockRestore();
   });
@@ -277,13 +277,13 @@ describe('rest.client', () => {
     it('returns mapped products from REST API', async () => {
       // Arrange
       const cacheService = { get: jest.fn(), set: jest.fn() };
-      const apiProducts: OpenMercatoRestProduct[] = [
-        { id: 10, name: 'Gadget A', sku: 'ga' },
-        { id: 20, name: 'Gadget B', sku: 'gb' },
-      ];
+      const apiProducts = [
+        { id: '10', title: 'Gadget A', default_media_url: '/media/ga.png' },
+        { id: '20', title: 'Gadget B', default_media_url: '/media/gb.png' },
+      ] as unknown as OpenMercatoRestProduct[];
       const fetchSpy = jest.spyOn(global, 'fetch' as any).mockResolvedValue({
         ok: true,
-        json: async () => ({ data: apiProducts }),
+        json: async () => ({ items: apiProducts }),
       } as any);
       const strapi = createStrapiMock({ cacheService });
       const client = getRestClient({ strapi });
@@ -294,12 +294,12 @@ describe('rest.client', () => {
       // Assert
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       const calledUrl = fetchSpy.mock.calls[0][0] as string;
-      expect(calledUrl).toContain('/entities/products');
-      expect(calledUrl).toContain('q=Gadget');
+      expect(calledUrl).toContain('/catalog/products');
+      expect(calledUrl).toContain('search=Gadget');
       expect(calledUrl).toContain('limit=10');
       expect(result).toEqual([
-        { id: 10, name: 'Gadget A' },
-        { id: 20, name: 'Gadget B' },
+        { id: '10', title: 'Gadget A', default_media_url: 'https://my-instance.openmercato.com/media/ga.png' },
+        { id: '20', title: 'Gadget B', default_media_url: 'https://my-instance.openmercato.com/media/gb.png' },
       ]);
       fetchSpy.mockRestore();
     });
@@ -309,7 +309,7 @@ describe('rest.client', () => {
       const cacheService = { get: jest.fn(), set: jest.fn() };
       const fetchSpy = jest.spyOn(global, 'fetch' as any).mockResolvedValue({
         ok: true,
-        json: async () => ({ data: [] }),
+        json: async () => ({ items: [] }),
       } as any);
       const strapi = createStrapiMock({ cacheService });
       const client = getRestClient({ strapi });

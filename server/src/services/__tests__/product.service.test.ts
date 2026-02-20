@@ -33,10 +33,10 @@ describe('products.service', () => {
 
   describe('getProductsById', () => {
     it('returns a map of products by id', async () => {
-      const inputIds = [1, 2];
+      const inputIds = ['1', '2'];
       const products = [
-        { id: 1, name: 'A' },
-        { id: 2, name: 'B' },
+        { id: '1', name: 'A' },
+        { id: '2', name: 'B' },
       ];
       mockRestClient.fetchProductsByIds.mockResolvedValue(products);
       const service = productsService({ strapi });
@@ -45,14 +45,14 @@ describe('products.service', () => {
       expect(mockRestClient.fetchProductsByIds).toHaveBeenCalledWith(inputIds);
       expect(result).toBeInstanceOf(Map);
       expect(result.size).toBe(2);
-      expect(result.get(1)).toEqual(products[0]);
-      expect(result.get(2)).toEqual(products[1]);
+      expect(result.get('1')).toEqual(products[0]);
+      expect(result.get('2')).toEqual(products[1]);
     });
 
     it('returns an empty map if no products are returned', async () => {
       mockRestClient.fetchProductsByIds.mockResolvedValue([]);
       const service = productsService({ strapi });
-      const result = await service.getProductsById([1, 2]);
+      const result = await service.getProductsById(['1', '2']);
       expect(result).toBeInstanceOf(Map);
       expect(result.size).toBe(0);
     });
@@ -69,14 +69,14 @@ describe('products.service', () => {
     it('propagates errors from fetchProductsByIds', async () => {
       mockRestClient.fetchProductsByIds.mockRejectedValue(new Error('fail'));
       const service = productsService({ strapi });
-      await expect(service.getProductsById([1])).rejects.toThrow('fail');
+      await expect(service.getProductsById(['1'])).rejects.toThrow('fail');
     });
   });
 
   describe('searchProducts', () => {
     it('returns search results from REST client', async () => {
       const query = 'shoes';
-      const results = [{ id: 1, name: 'Shoe' }];
+      const results = [{ id: '1', name: 'Shoe' }];
       mockRestClient.searchProductsByName.mockResolvedValue(results);
       const service = productsService({ strapi });
       const res = await service.searchProducts(query);

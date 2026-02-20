@@ -13,27 +13,23 @@ export const settingsConfig = z.object({
 });
 export type SettingsConfig = z.infer<typeof settingsConfig>;
 
-const memoryEngine = pluginConfig.extend({
-  engine: z.literal('memory'),
-});
-export type MemoryEngine = z.infer<typeof memoryEngine>;
-
-const redisEngine = pluginConfig.extend({
-  engine: z.literal('redis'),
-  connection: z.object({
-    host: z.string().min(1),
-    port: z.number().int().positive(),
-    db: z.number().int().positive(),
-    password: z.string().optional(),
-    username: z.string().optional(),
-  }),
+const redisConnection = z.object({
+  host: z.string().min(1),
+  port: z.number().int().positive(),
+  db: z.number().int().positive(),
+  password: z.string().optional(),
+  username: z.string().optional(),
 });
 
-export type RedisEngine = z.infer<typeof redisEngine>;
-
-export const schemaConfig = z.intersection(
-  pluginConfig,
-  z.discriminatedUnion('engine', [memoryEngine, redisEngine])
+export const schemaConfig = pluginConfig.extend({
+  engine: z.enum(['memory', 'redis']).optional(),
+  connection: redisConnection.optional(),
+}).refine(
+  (data) => data.engine !== 'redis' || data.connection !== undefined,
+  { message: 'Redis connection config is required when engine is "redis"', path: ['connection'] }
 );
 
 export type FullPluginConfig = z.infer<typeof schemaConfig>;
+
+export type MemoryEngine = FullPluginConfig & { engine: 'memory' };
+export type RedisEngine = FullPluginConfig & { engine: 'redis'; connection: z.infer<typeof redisConnection> };
