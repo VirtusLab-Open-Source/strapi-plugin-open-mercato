@@ -40,7 +40,7 @@ jobs:
             yarn test:server:ci
       - codecov/upload:
           flags: unittest
-          directory: ./server/coverage
+          files: ./server/coverage/clover.xml,./server/coverage/lcov.info,./server/coverage/coverage-final.json
       - save_cache:
           paths:
             - ./node_modules
