@@ -1,7 +1,7 @@
 {
   "name": "@sensinum/strapi-plugin-open-mercato",
-  "version": "1.0.0-beta.2",
-  "description": "Strapi Open Mercato Plugin",
+  "version": "1.0.0",
+  "description": "Strapi - Open Mercato seamless integration",
   "keywords": [
     "strapi",
     "open-mercato",
@@ -13,7 +13,7 @@
     "kind": "plugin",
     "name": "open-mercato",
     "displayName": "Open Mercato",
-    "description": "Strapi Open Mercato Plugin"
+    "description": "Integrates Open Mercato products with Strapi via a simple UI and API sync"
   },
   "license": "MIT",
   "author": "Mateusz Ziarko <mziarko@virtuslab.com>",
